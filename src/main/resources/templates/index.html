@@ -8,13 +8,35 @@
 </head>
 <body>
 <h1>Cadastro de Alunos</h1>
+
 <form id="cadastroForm">
     <input type="text" id="nome" placeholder="Nome" required>
     <input type="number" id="idade" placeholder="Idade" required>
     <button type="submit">Cadastrar</button>
 </form>
 
+<h2>Buscar Aluno</h2>
+<input type="text" id="buscarNome" placeholder="Digite o nome">
+<button id="buscarAlunoBtn">Buscar</button>
+<div id="resultadoBusca"></div>
+
+<h2>Remover Aluno</h2>
+<input type="text" id="deletarNome" placeholder="Digite o nome">
+<button id="deletarAlunoBtn">Deletar</button>
+<div id="resultadoDelecao"></div>
+
 <h2>Lista de Alunos</h2>
 <ul id="listaAlunos"></ul>
+
+<div id="formNotas" style="display: none;">
+    <h2>Adicionar Notas</h2>
+    <p id="alunoSelecionado"></p>
+    <input type="number" id="nota1" placeholder="Nota 1" required>
+    <input type="number" id="nota2" placeholder="Nota 2" required>
+    <input type="number" id="nota3" placeholder="Nota 3" required>
+    <input type="number" id="nota4" placeholder="Nota 4" required>
+    <button id="salvarNotasBtn">Salvar Notas</button>
+    <button id="cancelarNotasBtn">Cancelar</button>
+</div>
 </body>
 </html>

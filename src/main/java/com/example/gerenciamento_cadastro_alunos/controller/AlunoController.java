@@ -1,7 +1,7 @@
 package com.example.gerenciamento_cadastro_alunos.controller;
 
 import com.example.gerenciamento_cadastro_alunos.models.Aluno;
-import com.example.gerenciamento_cadastro_alunos.models.XMLUtil;
+import com.example.gerenciamento_cadastro_alunos.models.Util;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,79 +10,66 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/aluno")
+@RequestMapping("/app/aluno")
 public class AlunoController {
 
+    /** Retorna um um objeto */
     @PostMapping("/cadastrar")
-    public ResponseEntity<String> cadastrarAluno(@RequestParam String nome, @RequestParam int idade) {
-        try {
-            List<Aluno> alunos = XMLUtil.getAlunos();
+    public ResponseEntity<String> cadastrarAluno(@RequestParam String nome, @RequestParam int idade) throws Exception {
+        List<Aluno> alunos = Util.getAlunos();
 
-            // Verifica se já existe um aluno com o mesmo nome
-            if (alunos.stream().anyMatch(a -> a.getNome().equalsIgnoreCase(nome))) {
-                return ResponseEntity.badRequest().body("Aluno já cadastrado!");
-            }
-
-            Aluno novoAluno = new Aluno(nome, idade, List.of());
-            XMLUtil.salvarAluno(novoAluno);
-            return ResponseEntity.ok("Aluno cadastrado com sucesso!");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Erro ao cadastrar aluno.");
+        if (alunos.stream().anyMatch(a -> a.getNome().equalsIgnoreCase(nome))) {
+            return ResponseEntity.badRequest().body("Já existe um " + nome + " cadastrado");
         }
+
+        Util.salvarAluno(new Aluno(nome, idade, List.of()));
+        return ResponseEntity.ok("Cadastrado");
     }
 
     @GetMapping("/buscar")
-    public ResponseEntity<?> buscarAluno(@RequestParam String nome) {
-        try {
-            List<Aluno> alunos = XMLUtil.getAlunos();
-            Optional<Aluno> alunoEncontrado = alunos.stream()
-                    .filter(a -> a.getNome().equalsIgnoreCase(nome))
-                    .findFirst();
+    public ResponseEntity<?> buscarAluno(@RequestParam String nome) throws Exception {
+        List<Aluno> alunos = Util.getAlunos();
+        Optional<Aluno> alunoEncontrado = alunos.stream()
+                .filter(a -> a.getNome().equalsIgnoreCase(nome))
+                .findFirst();
 
-            if (alunoEncontrado.isPresent()) {
-                return ResponseEntity.ok(alunoEncontrado.get());
-            } else {
-                return ResponseEntity.badRequest().body("Aluno não encontrado.");
-            }
-
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Erro ao buscar aluno.");
+        if (alunoEncontrado.isPresent()) {
+            return ResponseEntity.ok(alunoEncontrado.get());
+        } else {
+            return ResponseEntity.badRequest().body("Não encontrado");
         }
     }
 
     @PostMapping("/adicionarNota")
-    public ResponseEntity<String> adicionarNota(@RequestParam String nome, @RequestParam double nota) {
-        try {
-            List<Aluno> alunos = XMLUtil.getAlunos();
-            for (Aluno aluno : alunos) {
-                if (aluno.getNome().equalsIgnoreCase(nome)) {
-                    aluno.getNotas().add(nota);
-                    XMLUtil.atualizarAlunos(alunos);
-                    return ResponseEntity.ok("Nota adicionada com sucesso!");
-                }
+    public ResponseEntity<String> adicionarNota(@RequestParam String nome, @RequestParam String notas) throws Exception {
+        List<Double> novaNotas = List.of(notas.split(",")).stream().map(Double::parseDouble).collect(Collectors.toList());
+        List<Aluno> alunos = Util.getAlunos();
+
+        for (Aluno aluno : alunos) {
+            if (aluno.getNome().equalsIgnoreCase(nome)) {
+                aluno.getNotas().addAll(novaNotas);
+                Util.atualizarAlunos(alunos);
+                return ResponseEntity.ok("Adicionadas");
             }
-            return ResponseEntity.badRequest().body("Aluno não encontrado.");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Erro ao adicionar nota.");
         }
+        return ResponseEntity.badRequest().body("Não encontrado");
     }
 
     @DeleteMapping("/deletar")
-    public ResponseEntity<String> deletarAluno(@RequestParam String nome) {
-        try {
-            List<Aluno> alunos = XMLUtil.getAlunos();
-            List<Aluno> alunosFiltrados = alunos.stream()
-                    .filter(a -> !a.getNome().equalsIgnoreCase(nome))
-                    .collect(Collectors.toList());
+    public ResponseEntity<String> deletarAluno(@RequestParam String nome) throws Exception {
+        List<Aluno> alunos = Util.getAlunos();
+        List<Aluno> filtrados = alunos.stream().filter(a -> !a.getNome().equalsIgnoreCase(nome)).collect(Collectors.toList());
 
-            if (alunos.size() == alunosFiltrados.size()) {
-                return ResponseEntity.badRequest().body("Aluno não encontrado.");
-            }
-
-            XMLUtil.atualizarAlunos(alunosFiltrados);
-            return ResponseEntity.ok("Aluno deletado com sucesso.");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Erro ao deletar aluno.");
+        if (alunos.size() == filtrados.size()) {
+            return ResponseEntity.badRequest().body("Não encontrado");
         }
+
+        Util.atualizarAlunos(filtrados);
+        return ResponseEntity.ok("Removido");
+    }
+
+    @GetMapping("/listar")
+    public List<Aluno> listarAlunos() throws Exception {
+        return Util.getAlunos();
     }
 }
